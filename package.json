@@ -4,7 +4,7 @@
   "description": "Backend pour site de jeux",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node serveur.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
