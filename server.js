@@ -7,6 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 app.listen(PORT);
 process.env.JWT_SECRET
+jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
 
 
