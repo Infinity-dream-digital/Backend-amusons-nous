@@ -5,11 +5,10 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-app.listen(PORT);
 
 // CORS
 app.use(cors({
-  origin: [process.env.FRONTEND_URL || 'http://localhost:3000', 'http://localhost:5500', 'http://127.0.0.1:5500'],
+  origin: [process.env.FRONTEND_URL || 'frontend-amusons-nous.vercel.app' 'http://localhost:3000', 'http://localhost:5500', 'http://127.0.0.1:5500'],
   credentials: true
 }));
 
