@@ -8,39 +8,27 @@ const PORT = process.env.PORT || 3000;
 
 // CORS
 app.use(cors({
-  origin: [process.env.FRONTEND_URL],
+  origin: process.env.FRONTEND_URL || "*",
   credentials: true
 }));
 
-// Body parsing (sauf pour le webhook Wave qui veut du raw)
-app.use((req, res, next) => {
-  if (req.path === '/api/wallet/webhook') return next();
-  express.json()(req, res, next);
-});
+// Body parsing
+app.use(express.json());
 
-// Servir le frontend en production
-app.use(express.static(path.join(__dirname, 'index.html')));
+// FRONTEND (si index.html est dans backend)
+app.use(express.static(__dirname));
 
-// ROUTES API
+// ROUTES
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/wallet', require('./routes/wallet'));
 app.use('/api/paris', require('./routes/paris'));
 
-// Health check
+// HEALTH
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', mode: process.env.APP_MODE || 'demo', version: '1.0.0' });
+  res.json({ status: 'ok', mode: process.env.APP_MODE || 'demo' });
 });
 
-// Fallback → frontend (SPA)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
+// START
 app.listen(PORT, () => {
-  console.log(`\n🎮 Amusons-Nous — Serveur démarré !`);
-  console.log(`📡 API     : http://localhost:${PORT}/api`);
-  console.log(`🌐 Site    : http://localhost:${PORT}`);
-  console.log(`⚙️  Mode    : ${process.env.APP_MODE || 'demo'}`);
-  console.log(`\n💡 En mode DEMO, les paiements sont simulés.`);
-  console.log(`   Pour activer Wave, mets APP_MODE=production dans .env\n`);
+  console.log("Server running on port", PORT);
 });
