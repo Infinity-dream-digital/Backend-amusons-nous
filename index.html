@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Amusons-Nous 🎮</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+<style>
+:root{--gold:#C9A84C;--gold-l:#E8C97A;--bg:#0A0A0F;--card:#12121A;--surf:#1A1A26;--bdr:rgba(201,168,76,0.22);--bdr-s:rgba(201,168,76,0.45);--tx:#F0EAD6;--muted:#7A7060;--green:#27AE60;--red:#C0392B;--blue:#2980B9;--r:12px;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(201,168,76,0.06),transparent 70%);pointer-events:none;}
+.z{position:relative;z-index:1;}
+
+/* ── HEADER ── */
+header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;border-bottom:1px solid var(--bdr);flex-wrap:wrap;gap:.5rem;background:rgba(10,10,15,.95);position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);}
+.logo{font-family:'Cinzel Decorative',serif;font-size:1.3rem;color:var(--gold);}
+.hdr-r{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
+.solde-chip{background:var(--surf);border:1px solid var(--bdr-s);border-radius:20px;padding:.3rem .85rem;font-size:.82rem;font-weight:600;color:var(--gold);}
+.user-chip{font-size:.78rem;color:var(--muted);}
+
+/* ── NAV ── */
+nav{display:flex;border-bottom:1px solid var(--bdr);overflow-x:auto;background:rgba(10,10,15,.9);position:sticky;top:57px;z-index:99;}
+nav a{flex-shrink:0;color:var(--muted);font-size:.72rem;font-weight:500;letter-spacing:.07em;text-transform:uppercase;padding:.65rem 1rem;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;}
+nav a:hover,nav a.on{color:var(--gold);border-bottom-color:var(--gold);}
+
+/* ── SECTIONS ── */
+.sec{display:none;}.sec.on{display:block;}
+main{max-width:960px;margin:0 auto;padding:1.5rem 1rem 5rem;}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;padding:.6rem 1.3rem;border:1px solid var(--gold);color:var(--gold);background:transparent;font-family:'Outfit',sans-serif;font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border-radius:var(--r);transition:all .18s;user-select:none;}
+.btn:hover:not(:disabled){background:var(--gold);color:#000;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-s{background:var(--gold);color:#000;}.btn-s:hover:not(:disabled){background:var(--gold-l);}
+.btn-g{border-color:var(--green);color:var(--green);}.btn-g:hover:not(:disabled){background:var(--green);color:#fff;}
+.btn-r{border-color:var(--red);color:var(--red);}.btn-r:hover:not(:disabled){background:var(--red);color:#fff;}
+.btn-sm{padding:.38rem .8rem;font-size:.72rem;}
+.btn-full{width:100%;}
+
+/* ── FORMS ── */
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:1.3rem;margin-bottom:.9rem;}
+.fg{margin-bottom:.85rem;}
+label{display:block;font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem;font-weight:600;}
+input,select{width:100%;padding:.58rem .85rem;background:var(--surf);border:1px solid var(--bdr);border-radius:8px;color:var(--tx);font-family:'Outfit',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s;}
+input:focus,select:focus{border-color:var(--gold);}
+select option{background:var(--surf);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:.85rem;}
+
+/* ── TITLES ── */
+.t1{font-size:1.5rem;color:var(--gold);margin-bottom:.25rem;font-weight:700;}
+.t2{color:var(--muted);font-size:.82rem;margin-bottom:1.3rem;}
+
+/* ── WALLET ── */
+.wallet-hero{text-align:center;padding:1.8rem;background:linear-gradient(135deg,rgba(201,168,76,0.07),transparent);border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:1rem;}
+.w-amount{font-family:'Cinzel Decorative',serif;font-size:2.3rem;color:var(--gold);margin:.4rem 0;}
+.w-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);}
+.stats-g{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;margin-bottom:1rem;}
+.sbox{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:.85rem;text-align:center;}
+.sv{font-size:1.15rem;font-weight:700;color:var(--gold);}
+.sl{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:.15rem;}
+.tx-list{list-style:none;}
+.tx-item{display:flex;justify-content:space-between;align-items:center;padding:.62rem 0;border-bottom:1px solid var(--bdr);}
+.tx-item:last-child{border-bottom:none;}
+.tx-d{font-size:.82rem;}.tx-dt{font-size:.68rem;color:var(--muted);margin-top:.1rem;}
+.pos{color:var(--green);font-weight:700;}.neg{color:var(--red);font-weight:700;}
+
+/* ── JEUX CATALOGUE ── */
+.jeux-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.75rem;}
+.jeu-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:1.2rem .75rem;text-align:center;cursor:pointer;transition:all .15s;}
+.jeu-card:hover{border-color:var(--gold);transform:translateY(-2px);}
+.jeu-card.sel{border-color:var(--gold);background:rgba(201,168,76,0.06);}
+.jeu-icon{font-size:2.5rem;margin-bottom:.5rem;}
+.jeu-name{font-size:.82rem;font-weight:600;}
+
+/* ── PARI FORM ── */
+.calc-box{background:var(--surf);border:1px solid var(--bdr-s);border-radius:var(--r);padding:.85rem 1.1rem;margin:.85rem 0;}
+.cr{display:flex;justify-content:space-between;padding:.25rem 0;font-size:.82rem;}
+.cr .l{color:var(--muted);}.cr.tot{border-top:1px solid var(--bdr);margin-top:.35rem;padding-top:.5rem;font-size:.9rem;}
+.cr.tot .v{color:var(--gold);font-weight:700;}
+.cr.gain .v{color:var(--green);font-weight:700;}
+
+/* ── CODE DISPLAY ── */
+.code-big{font-family:'Cinzel Decorative',serif;font-size:1.8rem;color:var(--gold);letter-spacing:.2em;padding:.8rem 1.5rem;background:var(--surf);border:1px solid var(--bdr-s);border-radius:var(--r);display:inline-block;margin:1rem 0;}
+
+/* ── GAME ROOM ── */
+.game-room{min-height:100vh;}
+.scorebar{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:.85rem 1.1rem;margin-bottom:.85rem;}
+.sb-player{text-align:center;flex:1;}
+.sb-name{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+.sb-score{font-size:1.6rem;font-weight:700;color:var(--tx);}
+.sb-player.active .sb-score{color:var(--gold);}
+.sb-vs{font-size:.7rem;color:var(--muted);padding:0 .75rem;}
+.turn-bar{text-align:center;padding:.5rem;background:rgba(201,168,76,0.08);border:1px solid var(--bdr);border-radius:8px;font-size:.82rem;color:var(--gold);margin-bottom:.85rem;font-weight:600;}
+.wait-bar{background:rgba(42,42,60,0.6);border:1px solid var(--bdr);border-radius:8px;font-size:.82rem;color:var(--muted);text-align:center;padding:.5rem;margin-bottom:.85rem;}
+
+/* ── TIC TAC TOE ── */
+.ttt-board{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:300px;margin:0 auto 1rem;}
+.ttt-cell{aspect-ratio:1;background:var(--surf);border:1px solid var(--bdr);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:2.2rem;cursor:pointer;transition:all .15s;user-select:none;}
+.ttt-cell:hover:not(.taken){background:rgba(201,168,76,0.1);}
+.ttt-cell.taken{cursor:default;}
+.ttt-cell.j1{color:var(--gold);}
+.ttt-cell.j2{color:var(--blue);}
+
+/* ── PUISSANCE 4 ── */
+.p4-board{display:flex;gap:5px;justify-content:center;margin:0 auto 1rem;max-width:100%;overflow-x:auto;}
+.p4-col{display:flex;flex-direction:column;gap:5px;cursor:pointer;}
+.p4-col:hover .p4-cell.empty{background:rgba(201,168,76,0.15);}
+.p4-cell{width:40px;height:40px;border-radius:50%;background:var(--surf);border:1px solid var(--bdr);transition:background .2s;}
+.p4-cell.j1{background:var(--gold);border-color:var(--gold-l);}
+.p4-cell.j2{background:#E74C3C;border-color:#C0392B;}
+
+/* ── SNAKE & LADDERS ── */
+.sl-board{display:grid;grid-template-columns:repeat(10,1fr);gap:2px;max-width:380px;margin:0 auto 1rem;border:1px solid var(--bdr);border-radius:8px;overflow:hidden;}
+.sl-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:.55rem;background:var(--surf);border:1px solid var(--bdr);position:relative;flex-direction:column;}
+.sl-cell.echelle{background:rgba(39,174,96,0.2);}
+.sl-cell.serpent{background:rgba(192,57,43,0.2);}
+.sl-cell .cn{font-size:.5rem;color:var(--muted);position:absolute;top:1px;left:2px;}
+.sl-pion{width:12px;height:12px;border-radius:50%;display:inline-block;}
+.sl-j1{background:var(--gold);}
+.sl-j2{background:#E74C3C;}
+.de-result{font-size:2.5rem;text-align:center;margin:.5rem 0;}
+
+/* ── LUDO ── */
+.ludo-wrap{max-width:350px;margin:0 auto;}
+.ludo-board{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:1rem;}
+.ludo-zone{background:var(--surf);border:1px solid var(--bdr);border-radius:8px;padding:.75rem;text-align:center;min-height:80px;}
+.ludo-zone.j1-zone{border-color:rgba(201,168,76,.5);}
+.ludo-zone.j2-zone{border-color:rgba(231,76,60,.5);}
+.ludo-pion{display:inline-block;width:18px;height:18px;border-radius:50%;margin:2px;cursor:pointer;transition:transform .1s;}
+.ludo-pion:hover{transform:scale(1.2);}
+.ludo-pion.j1{background:var(--gold);}
+.ludo-pion.j2{background:#E74C3C;}
+.ludo-pion.sorti{opacity:.4;}
+
+/* ── SOCCER / BASKETBALL / ARCHERY ── */
+.sport-canvas{width:100%;max-width:380px;margin:0 auto;display:block;border-radius:var(--r);border:1px solid var(--bdr);background:var(--surf);}
+.dir-btns{display:flex;gap:.6rem;justify-content:center;margin:.85rem 0;flex-wrap:wrap;}
+.dir-btn{padding:.65rem 1.4rem;background:var(--surf);border:1px solid var(--bdr);border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;color:var(--tx);transition:all .15s;user-select:none;}
+.dir-btn:hover{border-color:var(--gold);color:var(--gold);}
+.dir-btn.chosen{background:rgba(201,168,76,.15);border-color:var(--gold);color:var(--gold);}
+.power-wrap{margin:.85rem 0;}
+.power-bar{width:100%;height:18px;background:var(--surf);border:1px solid var(--bdr);border-radius:9px;overflow:hidden;margin:.4rem 0;}
+.power-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--gold),var(--red));transition:width .05s;}
+.slider-row{display:flex;align-items:center;gap:.75rem;}
+.slider-row input[type=range]{flex:1;accent-color:var(--gold);}
+
+/* ── ARCHERY CANVAS ── */
+.archery-target{position:relative;max-width:260px;margin:0 auto 1rem;}
+.arch-canvas{border-radius:50%;border:2px solid var(--bdr-s);}
+.arch-aim-info{text-align:center;font-size:.8rem;color:var(--muted);margin-top:.4rem;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:1.2rem;right:1.2rem;z-index:500;background:var(--card);border:1px solid var(--bdr-s);border-radius:var(--r);padding:.75rem 1.1rem;min-width:210px;display:none;animation:si .25s ease;}
+.toast.on{display:block;}.toast.ok{border-color:rgba(39,174,96,.5);}.toast.err{border-color:rgba(192,57,43,.5);}
+@keyframes si{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+.t-tit{font-weight:700;font-size:.82rem;color:var(--gold);margin-bottom:.1rem;}
+.toast.ok .t-tit{color:var(--green);}.toast.err .t-tit{color:var(--red);}
+.t-msg{font-size:.75rem;color:var(--muted);}
+
+/* ── MODAL ── */
+.ov{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.88);align-items:center;justify-content:center;padding:1rem;}
+.ov.on{display:flex;}
+.modal{background:var(--card);border:1px solid var(--bdr-s);border-radius:var(--r);width:100%;max-width:400px;padding:1.6rem;position:relative;max-height:90vh;overflow-y:auto;}
+.mx{position:absolute;top:.8rem;right:.8rem;background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;}
+.mh{font-size:1.3rem;color:var(--gold);font-weight:700;margin-bottom:.25rem;}
+.ms{color:var(--muted);font-size:.78rem;margin-bottom:1.1rem;}
+
+/* ── RESULT OVERLAY ── */
+.result-ov{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.93);align-items:center;justify-content:center;}
+.result-ov.on{display:flex;}
+.result-box{text-align:center;padding:2.5rem 2rem;background:var(--card);border:1px solid var(--bdr-s);border-radius:var(--r);max-width:380px;width:100%;margin:1rem;}
+.res-icon{font-size:4rem;margin-bottom:.75rem;}
+.res-title{font-size:1.6rem;font-weight:700;color:var(--gold);margin-bottom:.5rem;}
+.res-score{font-size:1.1rem;color:var(--muted);margin-bottom:.5rem;}
+.res-gain{font-family:'Cinzel Decorative',serif;font-size:1.3rem;color:var(--green);margin:1rem 0;padding:.6rem 1rem;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);border-radius:8px;}
+
+/* ── MISC ── */
+.badge{display:inline-block;padding:.15rem .5rem;border-radius:12px;font-size:.65rem;font-weight:700;text-transform:uppercase;}
+.bg{background:rgba(39,174,96,.15);color:var(--green);border:1px solid rgba(39,174,96,.3);}
+.br{background:rgba(192,57,43,.15);color:var(--red);border:1px solid rgba(192,57,43,.3);}
+.by{background:rgba(201,168,76,.15);color:var(--gold);border:1px solid rgba(201,168,76,.3);}
+.pari-item{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:.9rem 1rem;margin-bottom:.65rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.4rem;}
+.code-inp{display:flex;gap:.65rem;margin:.75rem 0;}
+.code-inp input{text-transform:uppercase;font-weight:700;letter-spacing:.1em;}
+.hero-btns{display:flex;gap:.75rem;flex-wrap:wrap;justify-content:center;margin-top:1.2rem;}
+.hero-text{text-align:center;padding:2rem 0 1rem;}
+.hero-text h1{font-size:clamp(1.4rem,4vw,2.2rem);font-weight:700;margin-bottom:.6rem;}
+.hero-text h1 em{color:var(--gold);font-style:normal;}
+.hero-text p{color:var(--muted);font-size:.85rem;max-width:420px;margin:0 auto;line-height:1.7;}
+.how-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.75rem;margin-top:1.2rem;}
+.how-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:1.1rem;text-align:center;}
+.how-icon{font-size:1.8rem;margin-bottom:.5rem;}
+.how-name{font-weight:700;font-size:.85rem;margin-bottom:.2rem;}
+.how-desc{font-size:.75rem;color:var(--muted);line-height:1.5;}
+.auth-tabs{display:flex;margin-bottom:1.2rem;border-radius:var(--r);overflow:hidden;border:1px solid var(--bdr);}
+.atab{flex:1;padding:.55rem;text-align:center;cursor:pointer;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);background:var(--card);transition:all .2s;}
+.atab.on{background:rgba(201,168,76,.12);color:var(--gold);}
+@media(max-width:500px){.stats-g{grid-template-columns:repeat(2,1fr);}.p4-cell{width:34px;height:34px;}.row2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="z">
+<header>
+  <div class="logo">AN</div>
+  <div class="hdr-r" id="hdr-r">
+    <button class="btn btn-sm btn-s" onclick="goSec('auth')">Connexion</button>
+  </div>
+</header>
+<nav id="mainnav">
+  <a class="on" onclick="goSec('home')">🏠 Accueil</a>
+  <a onclick="auth_go('parier')">🎲 Parier</a>
+  <a onclick="auth_go('wallet')">💰 Wallet</a>
+  <a onclick="auth_go('mesp')">📋 Mes Paris</a>
+  <a onclick="goSec('jeux')">🎮 Jeux</a>
+</nav>
+<main>
+
+<!-- HOME -->
+<div class="sec on" id="sec-home">
+  <div class="hero-text">
+    <h1>Défie tes amis &<br><em>gagne en temps réel</em></h1>
+    <p>Recharge ton wallet, crée un pari, joue contre ton ami sur son téléphone — le gagnant est crédité automatiquement.</p>
+    <div class="hero-btns">
+      <button class="btn btn-s" onclick="auth_go('parier')">🎲 Créer un pari</button>
+      <button class="btn" onclick="goSec('jeux')">🎮 Voir les jeux</button>
+    </div>
+  </div>
+  <div class="how-grid">
+    <div class="how-card"><div class="how-icon">💳</div><div class="how-name">Recharge</div><div class="how-desc">Ajoute des FCFA sur ton wallet via Wave.</div></div>
+    <div class="how-card"><div class="how-icon">🎯</div><div class="how-name">Crée un pari</div><div class="how-desc">Choisis ton jeu, ta mise, génère un code.</div></div>
+    <div class="how-card"><div class="how-icon">📱</div><div class="how-name">Partage</div><div class="how-desc">Ton adversaire rejoint depuis son téléphone.</div></div>
+    <div class="how-card"><div class="how-icon">🏆</div><div class="how-name">Gain auto</div><div class="how-desc">Le vainqueur est crédité instantanément.</div></div>
+  </div>
+</div>
+
+<!-- AUTH -->
+<div class="sec" id="sec-auth">
+  <div style="max-width:380px;margin:1rem auto;">
+    <div class="auth-tabs"><div class="atab on" id="atab-l" onclick="atab('l')">Connexion</div><div class="atab" id="atab-r" onclick="atab('r')">Inscription</div></div>
+    <div class="card" id="f-login">
+      <div class="fg"><label>Email</label><input type="email" id="l-email" placeholder="ton@email.com"></div>
+      <div class="fg"><label>Mot de passe</label><input type="password" id="l-pw" placeholder="••••••"></div>
+      <button class="btn btn-s btn-full" onclick="doLogin()">Se connecter</button>
+    </div>
+    <div class="card" id="f-reg" style="display:none;">
+      <div class="fg"><label>Pseudo</label><input type="text" id="r-user" placeholder="MonPseudo" maxlength="20"></div>
+      <div class="fg"><label>Email</label><input type="email" id="r-email" placeholder="ton@email.com"></div>
+      <div class="fg"><label>Mot de passe (min 6)</label><input type="password" id="r-pw" placeholder="••••••"></div>
+      <button class="btn btn-s btn-full" onclick="doReg()">Créer mon compte</button>
+    </div>
+  </div>
+</div>
+
+<!-- WALLET -->
+<div class="sec" id="sec-wallet">
+  <div id="demo-note" class="card" style="display:none;background:rgba(201,168,76,0.06);border-color:var(--bdr-s);text-align:center;font-size:.8rem;color:var(--muted);">⚙️ <strong style="color:var(--gold);">Mode démo</strong> — Paiements simulés, aucun vrai argent.</div>
+  <div class="wallet-hero">
+    <div class="w-label">Mon Solde</div>
+    <div class="w-amount" id="w-amount">0 FCFA</div>
+    <div style="display:flex;gap:.75rem;justify-content:center;margin-top:.85rem;flex-wrap:wrap;">
+      <button class="btn btn-s btn-sm" onclick="openOv('ov-rech')">+ Recharger</button>
+      <button class="btn btn-sm" onclick="openOv('ov-ret')">Retirer</button>
+    </div>
+  </div>
+  <div class="stats-g">
+    <div class="sbox"><div class="sv" id="ws-gains">0</div><div class="sl">Gains totaux</div></div>
+    <div class="sbox"><div class="sv" id="ws-parties">0</div><div class="sl">Parties</div></div>
+    <div class="sbox"><div class="sv" id="ws-wins">0</div><div class="sl">Victoires</div></div>
+    <div class="sbox"><div class="sv" id="ws-ratio">0%</div><div class="sl">Taux vic.</div></div>
+  </div>
+  <div class="card"><div class="t1" style="font-size:1.1rem;margin-bottom:.65rem;">Historique</div><ul class="tx-list" id="tx-list"></ul></div>
+</div>
+
+<!-- PARIER -->
+<div class="sec" id="sec-parier">
+  <div id="p-form">
+    <div class="t1">Créer un pari</div>
+    <div class="t2">Choisis ton jeu, ta mise, et génère un code pour ton adversaire</div>
+
+    <div class="card">
+      <div class="fg"><label>🎮 Jeu</label>
+        <select id="p-jeu">
+          <option value="">-- Choisir un jeu --</option>
+          <option value="tictactoe">❌ Tic Tac Toe</option>
+          <option value="puissance4">🟡 Puissance 4</option>
+          <option value="ludo">🎲 Ludo</option>
+          <option value="snakeladders">🐍 Snake & Ladders</option>
+          <option value="soccer">⚽ Football (tirs au but)</option>
+          <option value="basketball">🏀 Basketball (lancers)</option>
+          <option value="archery">🏹 Tir à l'arc</option>
+        </select>
+      </div>
+      <div class="fg"><label>💵 Mise (FCFA)</label><input type="number" id="p-mise" placeholder="Ex: 1000" min="200" oninput="calcMise()"></div>
+      <div class="calc-box" id="p-calc" style="display:none;">
+        <div class="cr"><span class="l">Mise</span><span class="v" id="pc-mise">—</span></div>
+        <div class="cr"><span class="l">Commission (1%)</span><span class="v" id="pc-comm">—</span></div>
+        <div class="cr tot"><span class="l">Tu paies</span><span class="v" id="pc-tot">—</span></div>
+        <div class="cr gain"><span class="l">🏆 Si tu gagnes</span><span class="v" id="pc-gain">—</span></div>
+      </div>
+      <div id="p-warn" style="color:var(--red);font-size:.78rem;margin-top:.4rem;display:none;">Solde insuffisant — <span style="color:var(--gold);cursor:pointer;" onclick="auth_go('wallet')">Recharger</span></div>
+    </div>
+    <button class="btn btn-s" onclick="creerPari()">🚀 Créer le pari</button>
+    <div style="margin-top:1.5rem;padding-top:1.2rem;border-top:1px solid var(--bdr);">
+      <div class="t1" style="font-size:1rem;">Rejoindre un pari</div>
+      <div class="code-inp">
+        <input type="text" id="join-code" placeholder="AN-XXXXXX" maxlength="10">
+        <button class="btn btn-s btn-sm" onclick="rejoindre()">Rejoindre →</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="p-code-panel" style="display:none;text-align:center;padding:1.5rem 0;">
+    <div style="font-size:1.1rem;font-weight:700;margin-bottom:.5rem;">✅ Pari créé !</div>
+    <p style="color:var(--muted);font-size:.85rem;margin-bottom:.5rem;">Partage ce code à ton adversaire :</p>
+    <div class="code-big" id="p-code-display">AN-XXXX</div><br>
+    <button class="btn btn-sm" onclick="copyCode()" style="margin:.5rem;">📋 Copier</button>
+    <p style="color:var(--muted);font-size:.78rem;margin-top:.75rem;">En attente que ton adversaire rejoigne...</p>
+    <div id="wait-indicator" style="margin-top:1rem;color:var(--gold);font-size:.85rem;">⏳ En attente de <strong id="wait-j2">...</strong></div>
+  </div>
+</div>
+
+<!-- MES PARIS -->
+<div class="sec" id="sec-mesp">
+  <div class="t1">Mes Paris</div>
+  <div class="t2">Historique et parties en cours</div>
+  <div class="card" style="margin-bottom:1rem;">
+    <div style="font-weight:600;font-size:.88rem;margin-bottom:.5rem;">Rejoindre un pari</div>
+    <div class="code-inp">
+      <input type="text" id="join-code2" placeholder="AN-XXXXXX" maxlength="10">
+      <button class="btn btn-s btn-sm" onclick="rejoindre2()">Rejoindre →</button>
+    </div>
+  </div>
+  <div id="mesp-list"></div>
+</div>
+
+<!-- JEUX CATALOGUE -->
+<div class="sec" id="sec-jeux">
+  <div class="t1">Nos Jeux</div>
+  <div class="t2">7 jeux HTML5 multijoueur temps réel</div>
+  <div class="jeux-grid" id="jeux-cat"></div>
+</div>
+
+<!-- GAME ROOM -->
+<div class="sec" id="sec-game">
+  <div id="game-waiting" style="text-align:center;padding:2rem;">
+    <div style="font-size:2rem;margin-bottom:1rem;">⏳</div>
+    <div style="font-size:1rem;font-weight:600;margin-bottom:.5rem;" id="gw-title">En attente de l'adversaire...</div>
+    <div style="color:var(--muted);font-size:.82rem;" id="gw-sub">Partage le code du pari</div>
+  </div>
+  <div id="game-area" style="display:none;">
+    <div class="scorebar">
+      <div class="sb-player" id="sb-j1"><div class="sb-name" id="sb-j1-name">J1</div><div class="sb-score" id="sb-j1-score">0</div></div>
+      <div class="sb-vs">VS</div>
+      <div class="sb-player" id="sb-j2"><div class="sb-name" id="sb-j2-name">J2</div><div class="sb-score" id="sb-j2-score">0</div></div>
+    </div>
+    <div id="turn-indicator" class="turn-bar">Chargement...</div>
+    <div id="game-content"></div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- MODALS -->
+<div class="ov" id="ov-rech">
+  <div class="modal">
+    <button class="mx" onclick="closeOv('ov-rech')">✕</button>
+    <div class="mh">Recharger le wallet</div>
+    <div class="ms" id="rech-sub">Via Wave — Mode démo</div>
+    <div class="fg"><label>Montant (FCFA)</label><input type="number" id="r-mont" placeholder="Ex: 5000" min="200"></div>
+    <button class="btn btn-s btn-full" onclick="doRecharge()" style="margin-top:.5rem;">Recharger</button>
+  </div>
+</div>
+<div class="ov" id="ov-ret">
+  <div class="modal">
+    <button class="mx" onclick="closeOv('ov-ret')">✕</button>
+    <div class="mh">Retirer des fonds</div>
+    <div class="ms">Envoi direct sur ton Wave</div>
+    <div class="fg"><label>Montant (FCFA)</label><input type="number" id="ret-mont" placeholder="Min 500" min="500"></div>
+    <div class="fg"><label>Numéro Wave</label><input type="tel" id="ret-num" placeholder="07 00 00 00 00"></div>
+    <button class="btn btn-s btn-full" onclick="doRetrait()" style="margin-top:.5rem;">Retirer</button>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="result-ov" id="result-ov">
+  <div class="result-box">
+    <div class="res-icon" id="r-icon">🏆</div>
+    <div class="res-title" id="r-title">Victoire !</div>
+    <div class="res-score" id="r-score"></div>
+    <div class="res-gain" id="r-gain"></div>
+    <div style="color:var(--muted);font-size:.8rem;margin-bottom:1.2rem;" id="r-sub"></div>
+    <button class="btn btn-s" onclick="closeResult()">Nouveau pari 🎲</button>
+    <button class="btn btn-sm" onclick="auth_go('wallet');closeResult();" style="margin-left:.5rem;">Voir wallet</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"><div class="t-tit" id="t-tit"></div><div class="t-msg" id="t-msg"></div></div>
+
+<script>
+const API = window.location.origin + '/api';
+let TOKEN = localStorage.getItem('an_tk');
+let USER = JSON.parse(localStorage.getItem('an_usr') || 'null');
+let socket = null;
+let currentRoom = null;
+let isJ1 = false;
+let gameState = null;
+let myTurn = false;
+let currentJeu = null;
+
+// ─── UTILS ───
+const fmt = n => Math.round(n).toLocaleString('fr-FR');
+const $ = id => document.getElementById(id);
+
+function toast(tit, msg, type='', d=3400) {
+  const el = $('toast'); $('t-tit').textContent = tit; $('t-msg').textContent = msg;
+  el.className = 'toast on ' + type;
+  setTimeout(() => el.classList.remove('on'), d);
+}
+
+function openOv(id) { $(id).classList.add('on'); }
+function closeOv(id) { $(id).classList.remove('on'); }
+function goSec(id) {
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('on'));
+  $('sec-' + id).classList.add('on');
+  document.querySelectorAll('#mainnav a').forEach((a, i) => {
+    a.classList.toggle('on', ['home','parier','wallet','mesp','jeux'][i] === id);
+  });
+  if (id === 'wallet') loadWallet();
+  if (id === 'mesp') loadMesParis();
+  if (id === 'jeux') buildCat();
+  window.scrollTo(0, 0);
+}
+function auth_go(sec) {
+  if (!TOKEN) { toast('Connexion requise', 'Crée un compte d\'abord', 'err'); goSec('auth'); return; }
+  goSec(sec);
+}
+
+async function api(path, opts = {}) {
+  const h = { 'Content-Type': 'application/json', ...(TOKEN ? { Authorization: 'Bearer ' + TOKEN } : {}), ...opts.headers };
+  const r = await fetch(API + path, { ...opts, headers: h });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error || 'Erreur');
+  return d;
+}
+
+// ─── HEADER ───
+function updHdr() {
+  const hr = $('hdr-r');
+  if (USER) {
+    hr.innerHTML = `<span class="user-chip">👤 ${USER.username}</span><div class="solde-chip" id="hdr-solde">${fmt(USER.solde)} F</div><button class="btn btn-sm" onclick="logout()">Déco</button>`;
+  } else {
+    hr.innerHTML = `<button class="btn btn-sm btn-s" onclick="goSec('auth')">Connexion</button>`;
+  }
+}
+
+// ─── AUTH ───
+function atab(t) {
+  $('f-login').style.display = t === 'l' ? 'block' : 'none';
+  $('f-reg').style.display = t === 'r' ? 'block' : 'none';
+  $('atab-l').classList.toggle('on', t === 'l');
+  $('atab-r').classList.toggle('on', t === 'r');
+}
+async function doLogin() {
+  try {
+    const d = await api('/auth/login', { method: 'POST', body: JSON.stringify({ email: $('l-email').value, password: $('l-pw').value }) });
+    TOKEN = d.token; USER = d.user;
+    localStorage.setItem('an_tk', TOKEN); localStorage.setItem('an_usr', JSON.stringify(USER));
+    updHdr(); toast('Bienvenue !', USER.username, 'ok'); connectSocket(); goSec('home');
+  } catch(e) { toast('Erreur', e.message, 'err'); }
+}
+async function doReg() {
+  try {
+    const d = await api('/auth/register', { method: 'POST', body: JSON.stringify({ username: $('r-user').value, email: $('r-email').value, password: $('r-pw').value }) });
+    TOKEN = d.token; USER = d.user;
+    localStorage.setItem('an_tk', TOKEN); localStorage.setItem('an_usr', JSON.stringify(USER));
+    updHdr(); toast('Compte créé !', 'Bienvenue 🎮', 'ok'); connectSocket(); goSec('wallet');
+  } catch(e) { toast('Erreur', e.message, 'err'); }
+}
+function logout() {
+  TOKEN = null; USER = null;
+  localStorage.removeItem('an_tk'); localStorage.removeItem('an_usr');
+  if (socket) { socket.disconnect(); socket = null; }
+  updHdr(); goSec('home');
+}
+
+// ─── WALLET ───
+async function loadWallet() {
+  try {
+    const d = await api('/wallet');
+    USER = d.user; localStorage.setItem('an_usr', JSON.stringify(USER));
+    $('w-amount').textContent = fmt(d.user.solde) + ' FCFA';
+    if ($('hdr-solde')) $('hdr-solde').textContent = fmt(d.user.solde) + ' F';
+    $('ws-gains').textContent = fmt(d.user.total_gains) + ' F';
+    $('ws-parties').textContent = d.user.parties_jouees;
+    $('ws-wins').textContent = d.user.parties_gagnees;
+    const ratio = d.user.parties_jouees > 0 ? Math.round(d.user.parties_gagnees / d.user.parties_jouees * 100) : 0;
+    $('ws-ratio').textContent = ratio + '%';
+    const tl = $('tx-list');
+    tl.innerHTML = d.transactions.length ? d.transactions.map(t => {
+      const pos = ['gain','recharge','remboursement'].includes(t.type);
+      const dt = new Date(t.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+      return `<li class="tx-item"><div><div class="tx-d">${t.description || t.type}</div><div class="tx-dt">${dt}</div></div><div class="${pos ? 'pos' : 'neg'}">${pos ? '+' : '-'}${fmt(t.montant)} F</div></li>`;
+    }).join('') : '<li style="color:var(--muted);padding:.75rem 0;font-size:.83rem;">Aucune transaction</li>';
+    const h = await api('/health');
+    if (h.mode === 'demo') { $('demo-note').style.display = 'block'; $('rech-sub').textContent = 'Mode démo — crédité instantanément'; }
+  } catch(e) { toast('Erreur wallet', e.message, 'err'); }
+}
+async function doRecharge() {
+  const m = parseFloat($('r-mont').value);
+  if (!m || m < 200) { toast('Erreur', 'Min 200 FCFA', 'err'); return; }
+  try {
+    const d = await api('/wallet/recharge', { method: 'POST', body: JSON.stringify({ montant: m }) });
+    closeOv('ov-rech'); toast('Rechargé !', '+' + fmt(m) + ' FCFA', 'ok');
+    USER.solde = d.solde; localStorage.setItem('an_usr', JSON.stringify(USER));
+    if ($('hdr-solde')) $('hdr-solde').textContent = fmt(d.solde) + ' F';
+    loadWallet();
+  } catch(e) { toast('Erreur', e.message, 'err'); }
+}
+async function doRetrait() {
+  const m = parseFloat($('ret-mont').value), num = $('ret-num').value.trim();
+  if (!m || m < 500) { toast('Erreur', 'Min 500 FCFA', 'err'); return; }
+  if (!num) { toast('Erreur', 'Numéro Wave requis', 'err'); return; }
+  try {
+    const d = await api('/wallet/retrait', { method: 'POST', body: JSON.stringify({ montant: m, numero_wave: num }) });
+    closeOv('ov-ret'); toast('Retrait effectué !', fmt(m) + ' FCFA envoyés', 'ok');
+    USER.solde = d.solde; localStorage.setItem('an_usr', JSON.stringify(USER));
+    if ($('hdr-solde')) $('hdr-solde').textContent = fmt(d.solde) + ' F';
+    loadWallet();
+  } catch(e) { toast('Erreur', e.message, 'err'); }
+}
+
+// ─── PARI ───
+function calcMise() {
+  const m = parseFloat($('p-mise').value);
+  const box = $('p-calc'), warn = $('p-warn');
+  if (!m || m < 200) { box.style.display = 'none'; warn.style.display = 'none'; return; }
+  const c = Math.ceil(m * 0.01);
+  $('pc-mise').textContent = fmt(m) + ' F'; $('pc-comm').textContent = fmt(c) + ' F';
+  $('pc-tot').textContent = fmt(m + c) + ' F'; $('pc-gain').textContent = fmt(m * 2) + ' F';
+  box.style.display = 'block';
+  warn.style.display = USER && USER.solde < m + c ? 'block' : 'none';
+}
+async function creerPari() {
+  const jeu = $('p-jeu').value, mise = parseFloat($('p-mise').value);
+  if (!jeu) { toast('Erreur', 'Choisis un jeu', 'err'); return; }
+  if (!mise || mise < 200) { toast('Erreur', 'Mise min 200 FCFA', 'err'); return; }
+  try {
+    const d = await api('/paris/creer', { method: 'POST', body: JSON.stringify({ mise, jeu }) });
+    USER.solde = d.solde; localStorage.setItem('an_usr', JSON.stringify(USER));
+    if ($('hdr-solde')) $('hdr-solde').textContent = fmt(d.solde) + ' F';
+    $('p-form').style.display = 'none';
+    $('p-code-panel').style.display = 'block';
+    $('p-code-display').textContent = d.code;
+    // Rejoindre la room socket
+    joinSocketRoom(d.code);
+  } catch(e) { toast('Erreur', e.message, 'err'); }
+}
+function copyCode() {
+  navigator.clipboard.writeText($('p-code-display').textContent).then(() => toast('Copié !', '', 'ok')).catch(() => {});
+}
+async function rejoindre() { await _join($('join-code').value.trim().toUpperCase()); }
+async function rejoindre2() { await _join($('join-code2').value.trim().toUpperCase()); }
+async function _join(code) {
+  if (!code) { toast('Erreur', 'Entre le code', 'err'); return; }
+  if (!TOKEN) { toast('Connexion requise', '', 'err'); goSec('auth'); return; }
+  try {
+    const d = await api('/paris/rejoindre', { method: 'POST', body: JSON.stringify({ code }) });
+    USER.solde = d.solde; localStorage.setItem('an_usr', JSON.stringify(USER));
+    if ($('hdr-solde')) $('hdr-solde').textContent = fmt(d.solde) + ' F';
+    toast('Pari rejoint !', 'vs ' + d.j1_username, 'ok');
+    joinSocketRoom(code);
+    goSec('game');
+  } catch(e) { toast('Erreur', e.message, 'err'); }
+}
+
+// ─── MES PARIS ───
+async function loadMesParis() {
+  try {
+    const paris = await api('/paris/mes-paris');
+    const list = $('mesp-list');
+    if (!paris.length) { list.innerHTML = '<p style="color:var(--muted);font-size:.83rem;">Aucun pari.</p>'; return; }
+    list.innerHTML = paris.map(p => {
+      const badge = p.statut === 'en_cours' ? 'by' : p.statut === 'termine' ? 'bg' : 'br';
+      return `<div class="pari-item"><div><strong>${p.code}</strong> · ${p.jeu}<br><span style="font-size:.75rem;color:var(--muted);">${p.j1||'?'} vs ${p.j2||'En attente'} · ${fmt(p.mise)} FCFA</span></div><span class="badge ${badge}">${p.statut}</span></div>`;
+    }).join('');
+  } catch(e) {}
+}
+
+// ─── CATALOGUE ───
+const JEUX_INFO = [
+  { id: 'tictactoe', name: 'Tic Tac Toe', icon: '❌', desc: '2 joueurs, même grille' },
+  { id: 'puissance4', name: 'Puissance 4', icon: '🟡', desc: 'Aligne 4 en premier' },
+  { id: 'ludo', name: 'Ludo', icon: '🎲', desc: '4 pions, 1 dé, be first' },
+  { id: 'snakeladders', name: 'Snake & Ladders', icon: '🐍', desc: 'Serpents et échelles' },
+  { id: 'soccer', name: 'Football', icon: '⚽', desc: 'Tirs au but tour à tour' },
+  { id: 'basketball', name: 'Basketball', icon: '🏀', desc: 'Lancers francs tour à tour' },
+  { id: 'archery', name: 'Tir à l\'arc', icon: '🏹', desc: 'Vise le centre !' },
+];
+function buildCat() {
+  $('jeux-cat').innerHTML = JEUX_INFO.map(j => `<div class="jeu-card" onclick="previewJeu('${j.id}')"><div class="jeu-icon">${j.icon}</div><div class="jeu-name">${j.name}</div><div style="font-size:.68rem;color:var(--muted);margin-top:.2rem;">${j.desc}</div></div>`).join('');
+}
+function previewJeu(id) {
+  const j = JEUX_INFO.find(x => x.id === id);
+  toast(j.icon + ' ' + j.name, 'Crée un pari pour jouer !', 'ok');
+}
+
+// ─── SOCKET ───
+function connectSocket() {
+  if (socket) return;
+  socket = io(window.location.origin, { auth: { token: TOKEN } });
+  socket.on('connect', () => console.log('🔌 Socket connecté'));
+  socket.on('error', (msg) => toast('Erreur', msg, 'err'));
+
+  socket.on('room_joined', (data) => {
+    currentRoom = data.code;
+    isJ1 = data.isJ1;
+    currentJeu = data.jeu;
+    gameState = data.etat;
+    myTurn = data.tour === (isJ1 ? 'j1' : 'j2');
+    $('sb-j1-name').textContent = data.j1 || 'J1';
+    $('sb-j2-name').textContent = data.j2 || 'J2';
+    updateTurnIndicator(data.tour);
+    if (data.j2) { $('game-waiting').style.display = 'none'; $('game-area').style.display = 'block'; renderGame(); }
+    goSec('game');
+  });
+
+  socket.on('player_joined', (data) => {
+    $('sb-j1-name').textContent = data.j1 || 'J1';
+    $('sb-j2-name').textContent = data.j2 || 'J2';
+    if (data.j2) {
+      $('game-waiting').style.display = 'none';
+      $('game-area').style.display = 'block';
+      renderGame();
+    }
+  });
+
+  socket.on('game_state', (data) => {
+    gameState = data.etat;
+    myTurn = data.tour === (isJ1 ? 'j1' : 'j2');
+    updateTurnIndicator(data.tour);
+    updateScoreBar(data.etat);
+    renderGame();
+  });
+
+  socket.on('game_over', (data) => {
+    showResult(data);
+    if (USER) {
+      USER.solde = isJ1 ? data.j1_solde : data.j2_solde;
+      localStorage.setItem('an_usr', JSON.stringify(USER));
+      if ($('hdr-solde')) $('hdr-solde').textContent = fmt(USER.solde) + ' F';
+    }
+  });
+}
+
+function joinSocketRoom(code) {
+  if (!socket) connectSocket();
+  socket.emit('join_room', { code });
+  currentRoom = code;
+}
+
+function sendAction(action, data = {}) {
+  if (!socket || !currentRoom) return;
+  socket.emit('game_action', { code: currentRoom, action, data });
+}
+
+// ─── UI HELPERS ───
+function updateTurnIndicator(tour) {
+  const j1n = $('sb-j1-name').textContent, j2n = $('sb-j2-name').textContent;
+  const name = tour === 'j1' ? j1n : j2n;
+  $('turn-indicator').textContent = myTurn ? '⚡ C\'est ton tour !' : `⏳ Tour de ${name}...`;
+  $('turn-indicator').style.background = myTurn ? 'rgba(201,168,76,0.12)' : 'rgba(30,30,46,0.6)';
+  $('turn-indicator').style.color = myTurn ? 'var(--gold)' : 'var(--muted)';
+  $('sb-j1').classList.toggle('active', tour === 'j1');
+  $('sb-j2').classList.toggle('active', tour === 'j2');
+}
+function updateScoreBar(etat) {
+  if (!etat) return;
+  if (etat.scores) {
+    $('sb-j1-score').textContent = etat.scores.j1 || 0;
+    $('sb-j2-score').textContent = etat.scores.j2 || 0;
+  }
+}
+function showResult(data) {
+  const myRole = isJ1 ? 'j1' : 'j2';
+  const iWon = data.gagnant === myRole;
+  const isDraw = data.egalite;
+  $('r-icon').textContent = isDraw ? '🤝' : iWon ? '🏆' : '😔';
+  $('r-title').textContent = isDraw ? 'Égalité !' : iWon ? 'Victoire !' : 'Défaite...';
+  $('r-score').textContent = `${$('sb-j1-name').textContent} vs ${$('sb-j2-name').textContent}`;
+  $('r-gain').textContent = isDraw ? '🤝 Mise remboursée' : iWon ? `💰 +${fmt(data.gain)} FCFA` : `${data.gagnant_username} gagne ${fmt(data.gain)} FCFA`;
+  $('r-sub').textContent = iWon ? 'Gain crédité sur ton wallet !' : isDraw ? 'Chaque joueur récupère sa mise.' : 'Meilleure chance la prochaine fois !';
+  $('result-ov').classList.add('on');
+}
+function closeResult() {
+  $('result-ov').classList.remove('on');
+  $('p-form').style.display = 'block';
+  $('p-code-panel').style.display = 'none';
+  currentRoom = null; gameState = null; currentJeu = null;
+  goSec('parier');
+}
+
+// ══════════════════════════════════════════════
+// RENDUS DES 7 JEUX
+// ══════════════════════════════════════════════
+function renderGame() {
+  if (!currentJeu || !gameState) return;
+  const gc = $('game-content');
+  switch(currentJeu) {
+    case 'tictactoe': gc.innerHTML = renderTTT(); break;
+    case 'puissance4': gc.innerHTML = renderP4(); break;
+    case 'ludo': gc.innerHTML = renderLudo(); break;
+    case 'snakeladders': gc.innerHTML = renderSL(); break;
+    case 'soccer': gc.innerHTML = renderSoccer(); break;
+    case 'basketball': gc.innerHTML = renderBasketball(); break;
+    case 'archery': gc.innerHTML = renderArchery(); break;
+  }
+}
+
+// ── TIC TAC TOE ──
+function renderTTT() {
+  const b = gameState.board;
+  const cells = b.map((v, i) => `
+    <div class="ttt-cell ${v ? 'taken ' + v : ''}" onclick="tttPlay(${i})">
+      ${v === 'j1' ? '✕' : v === 'j2' ? '○' : ''}
+    </div>`).join('');
+  return `<div class="ttt-board">${cells}</div><p style="text-align:center;color:var(--muted);font-size:.78rem;">${isJ1 ? '✕' : '○'} — Tu joues avec ce symbole</p>`;
+}
+window.tttPlay = (i) => { if (!myTurn) { toast('Attends', 'Pas ton tour !', 'err'); return; } sendAction('play', { index: i }); };
+
+// ── PUISSANCE 4 ──
+function renderP4() {
+  const b = gameState.board;
+  const cols = Array(7).fill(0).map((_, c) => {
+    const cells = Array(6).fill(0).map((_, r) => {
+      const v = b[r][c];
+      return `<div class="p4-cell ${v ? v : 'empty'}"></div>`;
+    }).join('');
+    return `<div class="p4-col" onclick="p4Play(${c})">${cells}</div>`;
+  }).join('');
+  return `<div class="p4-board">${cols}</div><p style="text-align:center;color:var(--muted);font-size:.78rem;margin-top:.5rem;">${isJ1 ? '🟡 Tu es Jaune' : '🔴 Tu es Rouge'}</p>`;
+}
+window.p4Play = (col) => { if (!myTurn) { toast('Attends', 'Pas ton tour !', 'err'); return; } sendAction('drop', { col }); };
+
+// ── LUDO ──
+function renderLudo() {
+  const e = gameState;
+  const myRole = isJ1 ? 'j1' : 'j2';
+  const pionsJ1 = e.pions.j1.map((pos, i) => `<div class="ludo-pion j1 ${pos === 56 ? 'sorti' : ''}" onclick="ludoPion('j1',${i})" title="J1 Pion ${i+1}: case ${pos === -1 ? 'base' : pos === 56 ? 'arrivée' : pos}">🟡</div>`).join('');
+  const pionsJ2 = e.pions.j2.map((pos, i) => `<div class="ludo-pion j2 ${pos === 56 ? 'sorti' : ''}" onclick="ludoPion('j2',${i})" title="J2 Pion ${i+1}: case ${pos === -1 ? 'base' : pos === 56 ? 'arrivée' : pos}">🔴</div>`).join('');
+  const deBtn = myTurn && !e.doitJouer ? `<button class="btn btn-s" onclick="sendAction('lancer_de')">🎲 Lancer le dé</button>` : '';
+  const deDisplay = e.de ? `<div class="de-result">${['','⚀','⚁','⚂','⚃','⚄','⚅'][e.de]}</div>` : '';
+  return `
+    <div class="ludo-wrap">
+      <div class="card" style="text-align:center;margin-bottom:.75rem;">
+        <div style="font-size:.78rem;color:var(--muted);margin-bottom:.5rem;">Pions J1 (🟡) — Case actuelle</div>
+        <div style="margin-bottom:.5rem;">${pionsJ1}</div>
+        <div style="font-size:.78rem;color:var(--muted);margin-bottom:.5rem;">Pions J2 (🔴) — Case actuelle</div>
+        <div>${pionsJ2}</div>
+      </div>
+      ${deDisplay}
+      <div style="text-align:center;">${deBtn}</div>
+      ${e.doitJouer && myTurn ? `<p style="text-align:center;color:var(--gold);font-size:.82rem;margin-top:.5rem;">Clique sur un pion pour le déplacer de ${e.de} cases</p>` : ''}
+    </div>`;
+}
+window.ludoPion = (role, idx) => {
+  if (!myTurn || !gameState.doitJouer) return;
+  const myRole = isJ1 ? 'j1' : 'j2';
+  if (role !== myRole) { toast('Erreur', 'Ce n\'est pas ton pion', 'err'); return; }
+  sendAction('bouger_pion', { pion: idx });
+};
+
+// ── SNAKE & LADDERS ──
+function renderSL() {
+  const e = gameState;
+  const SERPENTS = e.serpents || {};
+  const ECHELLES = e.echelles || {};
+  const cells = [];
+  for (let row = 9; row >= 0; row--) {
+    const rowCells = [];
+    for (let col = 0; col < 10; col++) {
+      const num = row % 2 === 0 ? row * 10 + col + 1 : row * 10 + (10 - col);
+      const hasJ1 = e.positions.j1 === num;
+      const hasJ2 = e.positions.j2 === num;
+      const isS = SERPENTS[num], isE = ECHELLES[num];
+      rowCells.push(`<div class="sl-cell ${isE ? 'echelle' : isS ? 'serpent' : ''}">
+        <span class="cn">${num}</span>
+        ${isE ? '🪜' : isS ? '🐍' : ''}
+        ${hasJ1 ? '<span class="sl-pion sl-j1"></span>' : ''}${hasJ2 ? '<span class="sl-pion sl-j2"></span>' : ''}
+      </div>`);
+    }
+    cells.push(...rowCells);
+  }
+  const deDisplay = e.de ? `<div class="de-result" style="margin:.5rem 0;">${['','⚀','⚁','⚂','⚃','⚄','⚅'][e.de]}</div>` : '';
+  const btnDe = myTurn ? `<button class="btn btn-s btn-full" onclick="sendAction('lancer_de')">🎲 Lancer le dé</button>` : '<div class="wait-bar">⏳ Attente de l\'adversaire...</div>';
+  return `
+    <div style="text-align:center;margin-bottom:.75rem;font-size:.78rem;color:var(--muted);">🟡 J1 = case ${e.positions.j1} &nbsp;|&nbsp; 🔴 J2 = case ${e.positions.j2}</div>
+    <div class="sl-board">${cells.join('')}</div>
+    ${deDisplay}
+    ${btnDe}`;
+}
+
+// ── SOCCER ──
+function renderSoccer() {
+  const e = gameState;
+  const myRole = isJ1 ? 'j1' : 'j2';
+  const isTireur = e.tireur === myRole;
+  $('sb-j1-score').textContent = e.scores?.j1 || 0;
+  $('sb-j2-score').textContent = e.scores?.j2 || 0;
+  const roundInfo = `<div style="text-align:center;color:var(--muted);font-size:.78rem;margin-bottom:.75rem;">Round ${e.round} / ${e.maxRounds * 2}</div>`;
+
+  // Draw field
+  const field = `<canvas id="soccer-canvas" class="sport-canvas" width="380" height="200"></canvas>`;
+  let btns = '';
+  if (isTireur && !e.power) {
+    btns = `<div style="text-align:center;margin-bottom:.5rem;font-size:.82rem;color:var(--gold);font-weight:600;">⚽ Tu tires — Choisit ta direction :</div>
+      <div class="dir-btns">
+        <div class="dir-btn" onclick="soccerTir('gauche')">← Gauche</div>
+        <div class="dir-btn" onclick="soccerTir('centre')">Centre</div>
+        <div class="dir-btn" onclick="soccerTir('droite')">Droite →</div>
+      </div>`;
+  } else if (!isTireur && e.power) {
+    btns = `<div style="text-align:center;margin-bottom:.5rem;font-size:.82rem;color:var(--gold);font-weight:600;">🥅 Tu gardes — Où tu plonges ?</div>
+      <div class="dir-btns">
+        <div class="dir-btn" onclick="soccerGarder('gauche')">← Gauche</div>
+        <div class="dir-btn" onclick="soccerGarder('centre')">Centre</div>
+        <div class="dir-btn" onclick="soccerGarder('droite')">Droite →</div>
+      </div>`;
+  } else {
+    btns = `<div class="wait-bar">⏳ ${isTireur ? 'Attends le gardien...' : 'Attends le tireur...'}</div>`;
+  }
+  setTimeout(() => drawSoccerField(), 50);
+  return `${roundInfo}${field}${btns}`;
+}
+function drawSoccerField() {
+  const canvas = $('soccer-canvas'); if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#1a5c1a'; ctx.fillRect(0, 0, 380, 200);
+  // Lignes
+  ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 1;
+  ctx.strokeRect(10, 10, 360, 180);
+  // But
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
+  ctx.strokeRect(140, 10, 100, 50);
+  // Sol
+  for (let i = 0; i < 4; i++) { ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, i*50+25); ctx.lineTo(380, i*50+25); ctx.stroke(); }
+  // Ballon
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(190, 160, 14, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#000'; ctx.font = '16px Arial'; ctx.textAlign = 'center'; ctx.fillText('⚽', 190, 165);
+}
+window.soccerTir = (dir) => sendAction('set_tir', { direction: dir });
+window.soccerGarder = (dir) => sendAction('set_parade', { direction: dir });
+
+// ── BASKETBALL ──
+function renderBasketball() {
+  const e = gameState;
+  const myRole = isJ1 ? 'j1' : 'j2';
+  const isTireur = e.tireur === myRole;
+  $('sb-j1-score').textContent = e.scores?.j1 || 0;
+  $('sb-j2-score').textContent = e.scores?.j2 || 0;
+  const roundInfo = `<div style="text-align:center;color:var(--muted);font-size:.78rem;margin-bottom:.75rem;">Round ${e.round} / ${e.maxRounds * 2} · ${e.shotResult ? (e.shotResult.marque ? '✅ MARQUE !' : '❌ Raté') : ''}</div>`;
+  const canvas = `<canvas id="bk-canvas" class="sport-canvas" width="380" height="220"></canvas>`;
+  let ctrl = '';
+  if (isTireur) {
+    ctrl = `
+      <div style="text-align:center;font-size:.82rem;color:var(--gold);font-weight:600;margin-bottom:.5rem;">🏀 Règle ta puissance et ton angle :</div>
+      <div class="power-wrap">
+        <label>Puissance <span id="bk-pow-v">50</span></label>
+        <div class="slider-row"><input type="range" min="0" max="100" value="50" id="bk-pow" oninput="$('bk-pow-v').textContent=this.value"></div>
+      </div>
+      <div class="power-wrap">
+        <label>Angle <span id="bk-ang-v">50</span></label>
+        <div class="slider-row"><input type="range" min="0" max="100" value="50" id="bk-ang" oninput="$('bk-ang-v').textContent=this.value"></div>
+      </div>
+      <button class="btn btn-s btn-full" onclick="bkShoot()" style="margin-top:.5rem;">🏀 Tirer !</button>`;
+  } else {
+    ctrl = `<div class="wait-bar">⏳ ${e.tireur === 'j1' ? $('sb-j1-name').textContent : $('sb-j2-name').textContent} tire...</div>`;
+  }
+  setTimeout(() => drawBasketField(), 50);
+  return `${roundInfo}${canvas}${ctrl}`;
+}
+function drawBasketField() {
+  const canvas = $('bk-canvas'); if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#8B4513'; ctx.fillRect(0, 0, 380, 220);
+  // Lignes parquet
+  ctx.strokeStyle = 'rgba(255,200,100,0.3)'; ctx.lineWidth = 1;
+  for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.moveTo(0, i*36+10); ctx.lineTo(380, i*36+10); ctx.stroke(); }
+  // Panier
+  ctx.strokeStyle = '#ff6600'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(160, 30); ctx.lineTo(220, 30); ctx.stroke();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(190, 40, 20, 0, Math.PI * 2); ctx.stroke();
+  // Planche
+  ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.fillRect(155, 10, 70, 15);
+  ctx.strokeStyle = '#ff6600'; ctx.lineWidth = 2; ctx.strokeRect(165, 12, 50, 11);
+  // Ballon
+  const e = gameState;
+  const ballX = e.shotResult ? 190 + e.shotResult.x * 0.3 : 190;
+  const ballY = e.shotResult ? 40 + e.shotResult.y * 0.3 : 180;
+  ctx.font = '24px Arial'; ctx.textAlign = 'center'; ctx.fillText('🏀', ballX, ballY);
+  if (e.shotResult) {
+    ctx.font = 'bold 16px Arial'; ctx.fillStyle = e.shotResult.marque ? '#27AE60' : '#E74C3C';
+    ctx.fillText(e.shotResult.marque ? 'MARQUE !' : 'RATÉ !', 190, 120);
+  }
+}
+window.bkShoot = () => {
+  const power = parseInt($('bk-pow').value), angle = parseInt($('bk-ang').value);
+  sendAction('shoot', { power, angle });
+};
+
+// ── ARCHERY ──
+function renderArchery() {
+  const e = gameState;
+  const myRole = isJ1 ? 'j1' : 'j2';
+  const isMyTurn = e.currentShooter === myRole;
+  $('sb-j1-score').textContent = e.scores?.j1 || 0;
+  $('sb-j2-score').textContent = e.scores?.j2 || 0;
+  const roundInfo = `<div style="text-align:center;color:var(--muted);font-size:.78rem;margin-bottom:.75rem;">Tir ${e.round} / 10 ${e.lastShot ? '· ' + (e.lastShot.role === (isJ1?'j1':'j2') ? 'Toi' : 'Adv') + ' : ' + e.lastShot.pts + ' pts' : ''}</div>`;
+  const canvas = `<canvas id="arch-canvas" width="260" height="260" style="display:block;margin:0 auto .75rem;border-radius:50%;border:2px solid var(--bdr-s);cursor:${isMyTurn ? 'crosshair' : 'default'};" onclick="archShoot(event)"></canvas>`;
+  const hint = isMyTurn
+    ? `<p style="text-align:center;font-size:.8rem;color:var(--gold);">🏹 Clique sur la cible pour tirer !</p>`
+    : `<div class="wait-bar">⏳ Adversaire tire...</div>`;
+  setTimeout(() => drawArchery(), 50);
+  return `${roundInfo}${canvas}${hint}`;
+}
+function drawArchery() {
+  const canvas = $('arch-canvas'); if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const cx = 130, cy = 130, rings = [85, 70, 55, 40, 25, 10];
+  const colors = ['#fff','#000','#4169E1','#E74C3C','var(--gold)','#FFD700'];
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(cx, cy, 90, 0, Math.PI*2); ctx.fill();
+  rings.forEach((r, i) => { ctx.fillStyle = colors[i]; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill(); });
+  // Croix
+  ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(cx-90,cy); ctx.lineTo(cx+90,cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,cy-90); ctx.lineTo(cx,cy+90); ctx.stroke();
+  // Flèches précédentes
+  const e = gameState;
+  if (e.lastShot) {
+    const ax = cx + e.lastShot.x * 0.9, ay = cy + e.lastShot.y * 0.9;
+    const col = e.lastShot.role === (isJ1?'j1':'j2') ? var_css('--gold') : '#E74C3C';
+    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(ax, ay, 5, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(ax,ay-12); ctx.lineTo(ax,ay); ctx.stroke();
+  }
+}
+function var_css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim() || '#C9A84C'; }
+window.archShoot = (e) => {
+  if (!gameState || gameState.currentShooter !== (isJ1?'j1':'j2')) return;
+  const canvas = $('arch-canvas'); if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const cx = rect.width/2, cy = rect.height/2;
+  const px = e.clientX - rect.left, py = e.clientY - rect.top;
+  // Normaliser à -100..100
+  const x = Math.round((px - cx) / cx * 100);
+  const y = Math.round((py - cy) / cy * 100);
+  sendAction('shoot', { x, y });
+};
+
+// ─── INIT ───
+updHdr();
+if (TOKEN) {
+  api('/auth/me').then(u => { USER = u; localStorage.setItem('an_usr', JSON.stringify(u)); updHdr(); connectSocket(); }).catch(() => { TOKEN = null; USER = null; localStorage.removeItem('an_tk'); localStorage.removeItem('an_usr'); updHdr(); });
+}
+buildCat();
+</script>
+</body>
+</html>
